@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use strum::Display;
+use tracing::span::EnteredSpan;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt;
 use tracing_subscriber::layer::Layer;
@@ -17,10 +18,15 @@ pub enum LogLevel {
     Error,
 }
 
+pub struct LoggingGuard {
+    _binary_scope: EnteredSpan,
+}
+
 pub fn init_logging(
+    binary_name: &'static str,
     log_level: LogLevel,
     log_for_humans: bool,
-) -> Result<(), tracing_subscriber::util::TryInitError> {
+) -> Result<LoggingGuard, tracing_subscriber::util::TryInitError> {
     let level = level_filter(log_level);
 
     match log_for_humans {
@@ -29,7 +35,7 @@ pub fn init_logging(
                 fmt::layer()
                     .json()
                     .flatten_event(true)
-                    .with_current_span(false)
+                    .with_current_span(true)
                     .with_span_list(false)
                     .with_filter(level),
             )
@@ -39,7 +45,9 @@ pub fn init_logging(
             .try_init()?,
     }
 
-    Ok(())
+    Ok(LoggingGuard {
+        _binary_scope: tracing::info_span!("app", binary = binary_name).entered(),
+    })
 }
 
 const fn level_filter(level: LogLevel) -> LevelFilter {

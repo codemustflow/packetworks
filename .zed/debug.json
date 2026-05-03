@@ -1,0 +1,59 @@
+[
+  {
+    "label": "Debug relay",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "build": {
+      "command": "cargo",
+      "args": ["build", "--manifest-path", "apps/relay/Cargo.toml", "--bin", "relay", "--locked"]
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/relay",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "sourceLanguages": ["rust"],
+    "terminal": "integrated",
+    "env": {
+      "LOG_FOR_HUMANS": "true",
+      "LOG_LEVEL": "info"
+    }
+  },
+  {
+    "label": "Debug sink",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "build": {
+      "command": "cargo",
+      "args": ["build", "--manifest-path", "apps/sink/Cargo.toml", "--bin", "sink", "--locked"]
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/sink",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "sourceLanguages": ["rust"],
+    "terminal": "integrated",
+    "env": {
+      "LOG_FOR_HUMANS": "true",
+      "LOG_LEVEL": "info",
+      "BIND_ADDRESS": "127.0.0.1",
+      "BIND_PORT": "9101"
+    }
+  },
+  {
+    "label": "Debug source",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "build": {
+      "command": "cargo",
+      "args": ["build", "--manifest-path", "apps/source/Cargo.toml", "--bin", "source", "--locked"]
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/source",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "sourceLanguages": ["rust"],
+    "terminal": "integrated",
+    "env": {
+      "LOG_FOR_HUMANS": "true",
+      "LOG_LEVEL": "info",
+      "BIND_ADDRESS": "127.0.0.1",
+      "BIND_PORT": "9102",
+      "PEER_ADDRESS": "127.0.0.1",
+      "PEER_PORT": "9101"
+    }
+  }
+]

@@ -15,9 +15,11 @@ jobs:
           command: |
             mkdir -p /tmp/artifacts/debug /tmp/artifacts/release
             cp target/debug/relay /tmp/artifacts/debug/relay
-            cp target/debug/participant /tmp/artifacts/debug/participant
+            cp target/debug/sink /tmp/artifacts/debug/sink
+            cp target/debug/source /tmp/artifacts/debug/source
             cp target/release/relay /tmp/artifacts/release/relay
-            cp target/release/participant /tmp/artifacts/release/participant
+            cp target/release/sink /tmp/artifacts/release/sink
+            cp target/release/source /tmp/artifacts/release/source
       - store_artifacts:
           path: /tmp/artifacts/debug
           destination: binaries/debug

@@ -1,17 +1,17 @@
 [package]
-name = "relay"
+name = "source"
 version.workspace = true
 edition.workspace = true
 autobins = false
 
 [[bin]]
-name = "relay"
-path = "src/relay.rs"
+name = "source"
+path = "src/source.rs"
 
 [dependencies]
 anyhow.workspace = true
 confique.workspace = true
 dotenvy.workspace = true
 logging.workspace = true
-serde.workspace = true
+tokio.workspace = true
 tracing.workspace = true
