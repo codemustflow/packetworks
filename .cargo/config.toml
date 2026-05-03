@@ -1,3 +1,4 @@
 [alias]
 ci = "xtask ci"
+build-all = "xtask build-all"
 xtask = "run --package xtask --"

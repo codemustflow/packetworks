@@ -1,33 +1,29 @@
-# This config was automatically generated from your source code
-# Stacks detected: deps:rust:.
 version: 2.1
+
 jobs:
-  test-rust:
+  ci:
     docker:
-      - image: cimg/rust:1.70
+      - image: cimg/rust:1.91
+    resource_class: medium
     steps:
       - checkout
-      - restore_cache:
-          key: cargo-{{ checksum "Cargo.lock" }}
       - run:
-          command: cargo test
-      - save_cache:
-          key: cargo-{{ checksum "Cargo.lock" }}
-          paths:
-            - ~/.cargo
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
-    steps:
-      # Replace this with steps to deploy to users
+          name: Run xtask CI
+          command: cargo ci
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Collect binaries
+          command: |
+            mkdir -p /tmp/artifacts/debug /tmp/artifacts/release
+            cp target/debug/packetworks /tmp/artifacts/debug/packetworks
+            cp target/release/packetworks /tmp/artifacts/release/packetworks
+      - store_artifacts:
+          path: /tmp/artifacts/debug
+          destination: binaries/debug
+      - store_artifacts:
+          path: /tmp/artifacts/release
+          destination: binaries/release
+
 workflows:
-  build-and-test:
+  ci:
     jobs:
-      - test-rust
-    # - deploy:
-    #     requires:
-    #       - test-rust
+      - ci
