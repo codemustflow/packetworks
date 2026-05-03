@@ -1,0 +1,29 @@
+version: 2.1
+
+jobs:
+  ci:
+    docker:
+      - image: cimg/rust:1.91
+    resource_class: medium
+    steps:
+      - checkout
+      - run:
+          name: Run xtask CI
+          command: cargo ci
+      - run:
+          name: Collect binaries
+          command: |
+            mkdir -p /tmp/artifacts/debug /tmp/artifacts/release
+            cp target/debug/packetworks /tmp/artifacts/debug/packetworks
+            cp target/release/packetworks /tmp/artifacts/release/packetworks
+      - store_artifacts:
+          path: /tmp/artifacts/debug
+          destination: binaries/debug
+      - store_artifacts:
+          path: /tmp/artifacts/release
+          destination: binaries/release
+
+workflows:
+  ci:
+    jobs:
+      - ci

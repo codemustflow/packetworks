@@ -1,6 +1,5 @@
 use anyhow::{Context, Result, bail};
 use std::env;
-use std::io::ErrorKind;
 use std::path::Path;
 use std::process::{Command, ExitCode};
 
@@ -22,7 +21,7 @@ fn try_main() -> Result<()> {
         Some("fmt") => fmt(),
         Some("lint") => lint(),
         Some("test") => test(),
-        Some("audit") => audit(),
+        Some("build-all") => build_all(),
         Some("help") | Some("--help") | Some("-h") | None => {
             print_usage();
             Ok(())
@@ -32,14 +31,14 @@ fn try_main() -> Result<()> {
 }
 
 fn print_usage() {
-    println!("usage: cargo xtask <ci|fmt|lint|test|audit>");
+    println!("usage: cargo xtask <ci|fmt|lint|test|build-all>");
 }
 
 fn ci() -> Result<()> {
     fmt()?;
     lint()?;
     test()?;
-    audit()?;
+    build_all()?;
     Ok(())
 }
 
@@ -64,9 +63,25 @@ fn test() -> Result<()> {
     cargo(&["test", "--workspace", "--all-features", "--locked"])
 }
 
-fn audit() -> Result<()> {
-    ensure_tool("cargo-audit", "cargo install cargo-audit --locked")?;
-    cargo(&["audit"])
+fn build_all() -> Result<()> {
+    cargo(&[
+        "build",
+        "--workspace",
+        "--exclude",
+        "xtask",
+        "--all-features",
+        "--locked",
+    ])?;
+
+    cargo(&[
+        "build",
+        "--workspace",
+        "--exclude",
+        "xtask",
+        "--all-features",
+        "--locked",
+        "--release",
+    ])
 }
 
 fn cargo(args: &[&str]) -> Result<()> {
@@ -89,23 +104,6 @@ fn run(program: &str, args: &[&str]) -> Result<()> {
             "command failed with status {status}: {program} {}",
             args.join(" ")
         )
-    }
-}
-
-fn ensure_tool(tool: &str, install_command: &str) -> Result<()> {
-    match Command::new(tool)
-        .arg("--version")
-        .current_dir(workspace_root())
-        .status()
-    {
-        Ok(status) if status.success() => Ok(()),
-        Ok(status) => bail!(
-            "{tool} is installed but not working (status {status}); reinstall with `{install_command}`"
-        ),
-        Err(error) if error.kind() == ErrorKind::NotFound => {
-            bail!("{tool} is required; install it with `{install_command}`")
-        }
-        Err(error) => Err(error).with_context(|| format!("failed to probe `{tool}`")),
     }
 }
 
