@@ -1,8 +1,10 @@
 use confique::Config;
 use serde::Deserialize;
+use strum::Display;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Display)]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum LogLevel {
     Trace,
     Debug,
@@ -13,13 +15,14 @@ pub enum LogLevel {
 
 #[derive(Debug, Config)]
 pub struct Environment {
-    #[config(env = "PACKETWORKS_LOG_LEVEL", default = "info")]
+    #[config(env = "LOG_LEVEL", default = "info")]
     pub log_level: LogLevel,
+
+    #[config(env = "LOG_FOR_HUMANS", default = false)]
+    pub log_for_humans: bool,
 }
 
-impl Environment {
-    pub fn load() -> Result<Self, confique::Error> {
-        let _ = dotenvy::dotenv();
-        Self::builder().env().load()
-    }
+pub fn load_environment() -> Result<Environment, confique::Error> {
+    let _ = dotenvy::dotenv();
+    Environment::builder().env().load()
 }

@@ -1,0 +1,41 @@
+use crate::env::LogLevel;
+use tracing_subscriber::filter::LevelFilter;
+use tracing_subscriber::fmt;
+use tracing_subscriber::layer::Layer;
+use tracing_subscriber::prelude::*;
+use tracing_subscriber::util::SubscriberInitExt;
+
+pub fn init_logging(
+    log_level: LogLevel,
+    log_for_humans: bool,
+) -> Result<(), tracing_subscriber::util::TryInitError> {
+    let level = level_filter(log_level);
+
+    match log_for_humans {
+        false => tracing_subscriber::registry()
+            .with(
+                fmt::layer()
+                    .json()
+                    .flatten_event(true)
+                    .with_current_span(false)
+                    .with_span_list(false)
+                    .with_filter(level),
+            )
+            .try_init()?,
+        true => tracing_subscriber::registry()
+            .with(fmt::layer().pretty().with_filter(level))
+            .try_init()?,
+    }
+
+    Ok(())
+}
+
+const fn level_filter(level: LogLevel) -> LevelFilter {
+    match level {
+        LogLevel::Trace => LevelFilter::TRACE,
+        LogLevel::Debug => LevelFilter::DEBUG,
+        LogLevel::Info => LevelFilter::INFO,
+        LogLevel::Warn => LevelFilter::WARN,
+        LogLevel::Error => LevelFilter::ERROR,
+    }
+}
