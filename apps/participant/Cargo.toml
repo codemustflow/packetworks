@@ -1,0 +1,12 @@
+[package]
+name = "participant"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+confique.workspace = true
+dotenvy.workspace = true
+packetworks-logging.workspace = true
+serde.workspace = true
+tracing.workspace = true

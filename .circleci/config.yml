@@ -14,8 +14,10 @@ jobs:
           name: Collect binaries
           command: |
             mkdir -p /tmp/artifacts/debug /tmp/artifacts/release
-            cp target/debug/packetworks /tmp/artifacts/debug/packetworks
-            cp target/release/packetworks /tmp/artifacts/release/packetworks
+            cp target/debug/relay /tmp/artifacts/debug/relay
+            cp target/debug/participant /tmp/artifacts/debug/participant
+            cp target/release/relay /tmp/artifacts/release/relay
+            cp target/release/participant /tmp/artifacts/release/participant
       - store_artifacts:
           path: /tmp/artifacts/debug
           destination: binaries/debug

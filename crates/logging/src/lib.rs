@@ -1,9 +1,21 @@
-use crate::env::LogLevel;
+use serde::Deserialize;
+use strum::Display;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt;
 use tracing_subscriber::layer::Layer;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::util::SubscriberInitExt;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Display)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+pub enum LogLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
 
 pub fn init_logging(
     log_level: LogLevel,

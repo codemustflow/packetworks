@@ -1,17 +1,5 @@
 use confique::Config;
-use serde::Deserialize;
-use strum::Display;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Display)]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
-pub enum LogLevel {
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    Error,
-}
+use packetworks_logging::LogLevel;
 
 #[derive(Debug, Config)]
 pub struct Environment {

@@ -1,0 +1,9 @@
+[package]
+name = "packetworks-logging"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+strum.workspace = true
+tracing-subscriber.workspace = true

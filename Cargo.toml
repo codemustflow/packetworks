@@ -1,16 +1,22 @@
-[package]
-name = "packetworks"
+[workspace]
+members = [
+    "apps/participant",
+    "apps/relay",
+    "crates/logging",
+    "xtask",
+]
+default-members = ["apps/relay"]
+resolver = "3"
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 
-[workspace]
-members = ["xtask"]
-resolver = "3"
-
-[dependencies]
+[workspace.dependencies]
 anyhow = "1"
 confique = "0.4"
 dotenvy = "0.15"
+packetworks-logging = { path = "crates/logging" }
 serde = { version = "1", features = ["derive"] }
 strum = { version = "0.28", features = ["derive"] }
 tracing = "0.1"
