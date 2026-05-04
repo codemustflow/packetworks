@@ -18,6 +18,12 @@ pub struct PacketStats {
     last_snapshot_at: Instant,
 }
 
+impl Default for PacketStats {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SequenceStatsSnapshot {
     pub out_of_order_packets: u64,
@@ -121,6 +127,12 @@ impl PacketStats {
 pub struct ReceiverPacketStats {
     packet_stats: PacketStats,
     sequence_stats: SequenceTracker,
+}
+
+impl Default for ReceiverPacketStats {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ReceiverPacketStats {
