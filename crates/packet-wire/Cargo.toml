@@ -1,0 +1,7 @@
+[package]
+name = "packet-wire"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+strum.workspace = true

@@ -1,17 +1,5 @@
 use confique::Config;
-use serde::Deserialize;
-use strum::Display;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Display)]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
-pub enum LogLevel {
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    Error,
-}
+use logging::LogLevel;
 
 #[derive(Debug, Config)]
 pub struct Environment {
@@ -20,6 +8,18 @@ pub struct Environment {
 
     #[config(env = "LOG_FOR_HUMANS", default = false)]
     pub log_for_humans: bool,
+
+    #[config(env = "BIND_ADDRESS", default = "0.0.0.0")]
+    pub bind_address: String,
+
+    #[config(env = "BIND_PORT", default = 9000)]
+    pub bind_port: u16,
+
+    #[config(env = "PACKET_SIZE", default = 1500)]
+    pub packet_size: usize,
+
+    #[config(env = "STATS_INTERVAL_SECONDS", default = 1)]
+    pub stats_interval_seconds: u64,
 }
 
 pub fn load_environment() -> Result<Environment, confique::Error> {

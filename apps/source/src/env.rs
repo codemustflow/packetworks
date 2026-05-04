@@ -1,0 +1,34 @@
+use confique::Config;
+use logging::LogLevel;
+
+#[derive(Debug, Config)]
+pub struct Environment {
+    #[config(env = "LOG_LEVEL", default = "info")]
+    pub log_level: LogLevel,
+
+    #[config(env = "LOG_FOR_HUMANS", default = false)]
+    pub log_for_humans: bool,
+
+    #[config(env = "BIND_ADDRESS", default = "0.0.0.0")]
+    pub bind_address: String,
+
+    #[config(env = "BIND_PORT", default = 9000)]
+    pub bind_port: u16,
+
+    #[config(env = "PEER_ADDRESS")]
+    pub peer_address: String,
+
+    #[config(env = "PEER_PORT")]
+    pub peer_port: u16,
+
+    #[config(env = "PACKET_SIZE", default = 1500)]
+    pub packet_size: usize,
+
+    #[config(env = "STATS_INTERVAL_SECONDS", default = 1)]
+    pub stats_interval_seconds: u64,
+}
+
+pub fn load_environment() -> Result<Environment, confique::Error> {
+    let _ = dotenvy::dotenv();
+    Environment::builder().env().load()
+}

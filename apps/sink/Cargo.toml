@@ -1,0 +1,19 @@
+[package]
+name = "sink"
+version.workspace = true
+edition.workspace = true
+autobins = false
+
+[[bin]]
+name = "sink"
+path = "src/sink.rs"
+
+[dependencies]
+anyhow.workspace = true
+confique.workspace = true
+dotenvy.workspace = true
+logging.workspace = true
+packet-stats.workspace = true
+packet-wire.workspace = true
+tokio.workspace = true
+tracing.workspace = true
