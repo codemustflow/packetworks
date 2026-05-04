@@ -13,5 +13,7 @@ anyhow.workspace = true
 confique.workspace = true
 dotenvy.workspace = true
 logging.workspace = true
+packet-stats.workspace = true
+packet-wire.workspace = true
 tokio.workspace = true
 tracing.workspace = true

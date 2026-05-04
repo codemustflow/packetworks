@@ -32,7 +32,9 @@
       "LOG_FOR_HUMANS": "true",
       "LOG_LEVEL": "info",
       "BIND_ADDRESS": "127.0.0.1",
-      "BIND_PORT": "9101"
+      "BIND_PORT": "9101",
+      "PACKET_SIZE": "1500",
+      "STATS_INTERVAL_SECONDS": "1"
     }
   },
   {
@@ -53,7 +55,9 @@
       "BIND_ADDRESS": "127.0.0.1",
       "BIND_PORT": "9102",
       "PEER_ADDRESS": "127.0.0.1",
-      "PEER_PORT": "9101"
+      "PEER_PORT": "9101",
+      "PACKET_SIZE": "1500",
+      "STATS_INTERVAL_SECONDS": "1"
     }
   }
 ]

@@ -1,11 +1,12 @@
 mod env;
 
 use crate::env::load_environment;
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, ensure};
+use packet_stats::ReceiverPacketStats;
+use packet_wire::Packet;
 use tokio::net::UdpSocket;
+use tokio::time::{Duration, MissedTickBehavior, interval};
 use tracing::info;
-
-const MAX_PACKET_SIZE: usize = 2048;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -34,31 +35,82 @@ async fn main() -> Result<()> {
         "sink UDP socket bound"
     );
 
-    run_sink(socket).await
+    run_sink(
+        socket,
+        environment.packet_size,
+        environment.stats_interval_seconds,
+    )
+    .await
 }
 
-async fn run_sink(socket: UdpSocket) -> Result<()> {
-    let mut buffer = [0_u8; MAX_PACKET_SIZE];
-    let mut packets_received = 0_u64;
+async fn run_sink(
+    socket: UdpSocket,
+    packet_size: usize,
+    stats_interval_seconds: u64,
+) -> Result<()> {
+    ensure!(
+        packet_size >= Packet::MINIMUM_SIZE,
+        "PACKET_SIZE must be at least {} bytes",
+        Packet::MINIMUM_SIZE
+    );
+    ensure!(
+        stats_interval_seconds > 0,
+        "STATS_INTERVAL_SECONDS must be greater than 0"
+    );
 
-    info!("sink running");
+    let mut buffer = vec![0_u8; packet_size];
+    let mut stats = ReceiverPacketStats::new();
+    let stats_interval = Duration::from_secs(stats_interval_seconds);
+    let mut stats_ticker = interval(stats_interval);
+    let shutdown = tokio::signal::ctrl_c();
+
+    stats_ticker.set_missed_tick_behavior(MissedTickBehavior::Skip);
+    stats_ticker.tick().await;
+    tokio::pin!(shutdown);
+
+    info!(packet_size, stats_interval_seconds, "sink running");
 
     loop {
         tokio::select! {
-            _ = tokio::signal::ctrl_c() => {
-                info!(packets_received, "shutdown signal received");
+            biased;
+
+            _ = &mut shutdown => {
+                let totals = stats.totals();
+                packet_stats::log_receiver_packet_stats_totals!(
+                    totals,
+                    total_packets_received,
+                    total_bytes_received,
+                    "shutdown signal received"
+                );
                 return Ok(());
+            }
+            _ = stats_ticker.tick() => {
+                let stats = stats.snapshot();
+
+                packet_stats::log_receiver_packet_stats!(
+                    stats,
+                    total_bytes_received,
+                    "sink throughput"
+                );
             }
             result = socket.recv_from(&mut buffer) => {
                 let (bytes_received, peer_addr) = result.context("failed to receive UDP packet")?;
-                packets_received += 1;
+                let packet_bytes = &buffer[..bytes_received];
 
-                info!(
-                    packets_received,
-                    bytes_received,
-                    peer_addr = %peer_addr,
-                    "UDP packet received"
-                );
+                match Packet::parse(packet_bytes) {
+                    Ok(packet) => {
+                        let sequence_number = packet.header.sequence_number;
+                        stats.record_packet(sequence_number, bytes_received);
+                    }
+                    Err(error) => {
+                        info!(
+                            bytes_received,
+                            peer_addr = %peer_addr,
+                            error = %error,
+                            "received invalid packet"
+                        );
+                    }
+                }
             }
         }
     }

@@ -19,7 +19,7 @@ pub enum LogLevel {
 }
 
 pub struct LoggingGuard {
-    _binary_scope: EnteredSpan,
+    _binary_scope: Option<EnteredSpan>,
 }
 
 pub fn init_logging(
@@ -41,12 +41,20 @@ pub fn init_logging(
             )
             .try_init()?,
         true => tracing_subscriber::registry()
-            .with(fmt::layer().pretty().with_filter(level))
+            .with(
+                fmt::layer()
+                    .pretty()
+                    .with_file(false)
+                    .with_line_number(false)
+                    .with_target(false)
+                    .with_filter(level),
+            )
             .try_init()?,
     }
 
     Ok(LoggingGuard {
-        _binary_scope: tracing::info_span!("app", binary = binary_name).entered(),
+        _binary_scope: (!log_for_humans)
+            .then(|| tracing::info_span!("app", binary = binary_name).entered()),
     })
 }
 

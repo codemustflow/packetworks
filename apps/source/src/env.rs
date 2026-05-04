@@ -20,6 +20,12 @@ pub struct Environment {
 
     #[config(env = "PEER_PORT")]
     pub peer_port: u16,
+
+    #[config(env = "PACKET_SIZE", default = 1500)]
+    pub packet_size: usize,
+
+    #[config(env = "STATS_INTERVAL_SECONDS", default = 1)]
+    pub stats_interval_seconds: u64,
 }
 
 pub fn load_environment() -> Result<Environment, confique::Error> {

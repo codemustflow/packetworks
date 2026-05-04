@@ -1,0 +1,6 @@
+[package]
+name = "packet-stats"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

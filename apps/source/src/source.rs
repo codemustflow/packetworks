@@ -1,14 +1,15 @@
 mod env;
 
 use crate::env::load_environment;
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, ensure};
+use packet_stats::PacketStats;
+use packet_wire::{Packet, PacketMut};
 use std::net::SocketAddr;
 use tokio::net::{UdpSocket, lookup_host};
-use tokio::time::{Duration, interval};
+use tokio::time::{Duration, MissedTickBehavior, interval};
 use tracing::info;
 
-const PAYLOAD: &[u8] = b"packetworks-source";
-const SEND_INTERVAL: Duration = Duration::from_secs(1);
+const PAYLOAD_BODY: &[u8] = b"packetworks-source";
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -54,43 +55,96 @@ async fn main() -> Result<()> {
         "source UDP socket bound"
     );
 
-    run_source(socket, peer).await
+    run_source(
+        socket,
+        peer,
+        environment.packet_size,
+        environment.stats_interval_seconds,
+    )
+    .await
 }
 
-async fn run_source(socket: UdpSocket, peer: SocketAddr) -> Result<()> {
-    let mut packets_sent = 0_u64;
-    let mut ticker = interval(SEND_INTERVAL);
+async fn run_source(
+    socket: UdpSocket,
+    peer: SocketAddr,
+    packet_size: usize,
+    stats_interval_seconds: u64,
+) -> Result<()> {
+    ensure!(
+        packet_size >= Packet::MINIMUM_SIZE,
+        "PACKET_SIZE must be at least {} bytes",
+        Packet::MINIMUM_SIZE
+    );
+    ensure!(
+        stats_interval_seconds > 0,
+        "STATS_INTERVAL_SECONDS must be greater than 0"
+    );
+
+    let mut stats = PacketStats::new();
+    let mut next_sequence_number = 0_u64;
+    let mut packet_bytes = vec![0_u8; packet_size];
+    let stats_interval = Duration::from_secs(stats_interval_seconds);
+    let mut stats_ticker = interval(stats_interval);
+    let shutdown = tokio::signal::ctrl_c();
+
+    {
+        let mut packet =
+            PacketMut::new(&mut packet_bytes).expect("packet size was validated before allocation");
+        let payload = packet.payload_mut();
+        let body_len = payload.len().min(PAYLOAD_BODY.len());
+        payload[..body_len].copy_from_slice(&PAYLOAD_BODY[..body_len]);
+    }
+    stats_ticker.set_missed_tick_behavior(MissedTickBehavior::Skip);
+    stats_ticker.tick().await;
+
+    tokio::pin!(shutdown);
 
     info!(
         peer = %peer,
-        payload_size = PAYLOAD.len(),
-        interval_seconds = SEND_INTERVAL.as_secs(),
+        packet_size = packet_bytes.len(),
+        stats_interval_seconds,
         "source running"
     );
 
     loop {
         tokio::select! {
-            _ = tokio::signal::ctrl_c() => {
-                info!(
-                    packets_sent,
+            biased;
+
+            _ = &mut shutdown => {
+                let totals = stats.totals();
+                packet_stats::log_packet_stats_totals!(
+                    totals,
+                    total_packets_sent,
+                    total_bytes_sent,
                     peer = %peer,
                     "shutdown signal received"
                 );
                 return Ok(());
             }
-            _ = ticker.tick() => {
+            _ = stats_ticker.tick() => {
+                let stats = stats.snapshot();
+
+                packet_stats::log_packet_stats!(
+                    stats,
+                    total_bytes_sent,
+                    peer = %peer,
+                    "source throughput"
+                );
+            }
+            result = async {
+                let mut packet = PacketMut::new(&mut packet_bytes)
+                    .expect("packet size was validated before entering the run loop");
+                packet.header.sequence_number = next_sequence_number;
                 let bytes_sent = socket
-                    .send_to(PAYLOAD, peer)
+                    .send_to(packet.as_bytes(), peer)
                     .await
                     .with_context(|| format!("failed to send UDP packet to {peer}"))?;
-                packets_sent += 1;
 
-                info!(
-                    packets_sent,
-                    bytes_sent,
-                    peer = %peer,
-                    "UDP packet sent"
-                );
+                Ok::<usize, anyhow::Error>(bytes_sent)
+            } => {
+                let bytes_sent = result?;
+                next_sequence_number += 1;
+                stats.record_packet(bytes_sent);
             }
         }
     }
