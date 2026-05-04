@@ -244,10 +244,12 @@ where
         let reader = BufReader::new(reader);
 
         for line in reader.lines() {
-            println!(
-                "[{label}] {}",
-                line.with_context(|| format!("failed to read {label} output"))?
-            );
+            let line = line.with_context(|| format!("failed to read {label} output"))?;
+            if line.trim().is_empty() {
+                continue;
+            }
+
+            println!("[{label}] {}", line);
         }
 
         Ok(())

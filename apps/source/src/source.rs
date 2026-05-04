@@ -115,7 +115,7 @@ async fn run_source(
                 packet_stats::log_packet_stats_totals!(
                     totals,
                     total_packets_sent,
-                    total_bytes_sent,
+                    total_sent,
                     peer = %peer,
                     "shutdown signal received"
                 );
@@ -126,9 +126,7 @@ async fn run_source(
 
                 packet_stats::log_packet_stats!(
                     stats,
-                    total_bytes_sent,
-                    peer = %peer,
-                    "source throughput"
+                    total_sent,
                 );
             }
             result = async {

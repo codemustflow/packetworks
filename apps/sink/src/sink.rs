@@ -79,7 +79,7 @@ async fn run_sink(
                 packet_stats::log_receiver_packet_stats_totals!(
                     totals,
                     total_packets_received,
-                    total_bytes_received,
+                    total_received,
                     "shutdown signal received"
                 );
                 return Ok(());
@@ -89,8 +89,7 @@ async fn run_sink(
 
                 packet_stats::log_receiver_packet_stats!(
                     stats,
-                    total_bytes_received,
-                    "sink throughput"
+                    total_received,
                 );
             }
             result = socket.recv_from(&mut buffer) => {

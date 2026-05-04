@@ -226,8 +226,8 @@ macro_rules! log_receiver_packet_stats {
             pps = %$crate::format_pps($stats.packets_per_second),
             $total_bytes_field = %$crate::format_bytes($stats.total_bytes),
             throughput = %$crate::format_bytes_per_second($stats.bytes_per_second),
-            out_of_order_packets = $stats.out_of_order_packets,
-            missing_packets = $stats.missing_packets,
+            ooo = $stats.out_of_order_packets,
+            missing = $stats.missing_packets,
             $($rest)*
         )
     };
@@ -239,8 +239,8 @@ macro_rules! log_receiver_packet_stats_totals {
         ::tracing::info!(
             $total_packets_field = $stats.total_packets,
             $total_bytes_field = %$crate::format_bytes($stats.total_bytes),
-            out_of_order_packets = $stats.out_of_order_packets,
-            missing_packets = $stats.missing_packets,
+            ooo = $stats.out_of_order_packets,
+            missing = $stats.missing_packets,
             $($rest)*
         )
     };
