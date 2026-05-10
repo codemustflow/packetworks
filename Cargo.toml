@@ -24,6 +24,6 @@ packet-wire = { path = "crates/packet-wire" }
 packet-stats = { path = "crates/packet-stats" }
 serde = { version = "1", features = ["derive"] }
 strum = { version = "0.28", features = ["derive"] }
-tokio = { version = "1.52.1", features = ["macros", "net", "rt-multi-thread", "signal", "time"] }
+tokio = { version = "1.52.3", features = ["macros", "net", "rt-multi-thread", "signal", "time"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["json"] }
