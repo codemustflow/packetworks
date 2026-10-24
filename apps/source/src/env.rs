@@ -12,7 +12,7 @@ pub struct Environment {
     #[config(env = "BIND_ADDRESS", default = "0.0.0.0")]
     pub bind_address: String,
 
-    #[config(env = "BIND_PORT", default = 9000)]
+    #[config(env = "BIND_PORT", default = 0)]
     pub bind_port: u16,
 
     #[config(env = "PEER_ADDRESS")]
